@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShopApi.Data.Entities
+namespace ShopApi.Apps.AdminApi.DTOs.ProductDtos
 {
-    public class Product:BaseEntity
+    public class ProductGetDto
     {
+        public int Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime ModifiedAt { get; set; }
         public string Name { get; set; }
         public decimal SalePrice { get; set; }
         public decimal CostPrice { get; set; }
         public bool DisplayStatus { get; set; }
         public int CategoryId { get; set; }
-        public bool IsDeleted { get; set; }
-        public Category Category { get; set; }
-
     }
 }

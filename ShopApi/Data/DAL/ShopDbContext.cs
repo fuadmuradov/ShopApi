@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ShopApi.Data.Configuration;
 using ShopApi.Data.Entities;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,12 @@ namespace ShopApi.Data.DAL
 
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfiguration(new ProductConfiguration());
+        }
+
 
     }
 }
