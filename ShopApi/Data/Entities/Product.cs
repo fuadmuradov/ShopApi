@@ -16,4 +16,5 @@ namespace ShopApi.Data.Entities
         public Category Category { get; set; }
 
     }
+
 }

@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ShopApi.Data.DAL;
 using ShopApi.Data.Entities;
+using ShopApi.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +16,12 @@ namespace ShopApi.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ShopDbContext context;
+        private readonly IWebHostEnvironment webHost;
 
-        public CategoriesController(ShopDbContext context)
+        public CategoriesController(ShopDbContext context, IWebHostEnvironment webHost)
         {
             this.context = context;
+            this.webHost = webHost;
         }
 
         public IActionResult GetAll()
@@ -36,11 +40,24 @@ namespace ShopApi.Controllers
         }
 
         [HttpPost("")]
-        public IActionResult Create(Category category)
+        public IActionResult Create([FromForm]Category category)
         {
             Category existcategory = context.Categories.FirstOrDefault(x => x.Name.ToLower() == category.Name.ToLower());
             if (existcategory != null) return Content($"{category.Name.ToUpper()} already exist!!");
 
+            if (category.Photo == null) return NotFound();
+
+            if (!category.Photo.IsImage())
+            {
+                return NotFound();
+            }
+
+            string folder = @"Image\";
+            string filename = category.Photo.SaveAsync(webHost.WebRootPath, folder).Result;
+
+
+
+            category.Image = filename;
             context.Categories.Add(category);
             context.SaveChanges();
 
