@@ -13,5 +13,14 @@ namespace ShopApi.Apps.AdminApi.DTOs.ProductDtos
         public decimal CostPrice { get; set; }
         public bool DisplayStatus { get; set; }
 
+        public CategoryInProductListItemDto Category { get; set; }
+
     }
+
+    public class CategoryInProductListItemDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
 }

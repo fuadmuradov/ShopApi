@@ -10,6 +10,7 @@ namespace ShopApi.Apps.AdminApi.DTOs.ProductDtos
 {
     public class ProductPostDto
     {
+
         public string Name { get; set; }
         public decimal SalePrice { get; set; }
         public decimal CostPrice { get; set; }
@@ -22,6 +23,9 @@ namespace ShopApi.Apps.AdminApi.DTOs.ProductDtos
     {
         public ProductPostDtoValidator()
         {
+            RuleFor(x => x.CategoryId).NotNull().WithMessage("Category Id must bel fill")
+                .GreaterThanOrEqualTo(1).WithMessage("Category must be greater then 1");
+
             RuleFor(x => x.Name).MaximumLength(30).WithMessage("uzunluq 30 ola bilerr !")
                 .NotEmpty().WithMessage("Name mütleq doldurulmalidir");
 

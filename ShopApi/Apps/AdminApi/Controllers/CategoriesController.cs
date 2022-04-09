@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ShopApi.Apps.AdminApi.DTOs.CateforyDtos;
 using ShopApi.Data.DAL;
 using ShopApi.Data.Entities;
 using ShopApi.Extensions;
@@ -17,59 +20,83 @@ namespace ShopApi.Controllers
     {
         private readonly ShopDbContext context;
         private readonly IWebHostEnvironment webHost;
+        private readonly IMapper mapper;
 
-        public CategoriesController(ShopDbContext context, IWebHostEnvironment webHost)
+        public CategoriesController(ShopDbContext context, IWebHostEnvironment webHost, IMapper mapper)
         {
             this.context = context;
             this.webHost = webHost;
+            this.mapper = mapper;
         }
 
         public IActionResult GetAll()
         {
-            return StatusCode(200, context.Categories.ToList());
+            var query = context.Categories.Where(x => !x.IsDeleted);
+            CategoryGetListDto categoryGetListDto = new CategoryGetListDto()
+            {
+                Categories = query.Select(x => new CategoryListItemDto()
+                {
+                    Name = x.Name,
+                    Image = x.Image
+                }).ToList(),
+                TotalCount = query.Count()
+            };
+
+
+            return StatusCode(200, categoryGetListDto);
         }
 
         [Route("get/{id}")]
         [HttpGet]
         public IActionResult Get(int id)
         {
-            Category category = context.Categories.FirstOrDefault(x => x.Id == id);
+            Category category = context.Categories.Include(x=>x.Products).FirstOrDefault(x => x.Id == id);
             if (category == null) return NotFound();
+            //CategoryGetDtos categoryGet = new CategoryGetDtos()
+            //{
+            //    Name = category.Name,
+            //    Image = category.Image,
+            //};
 
-            return StatusCode(200, category);
+            CategoryGetDtos categoryGet = mapper.Map<CategoryGetDtos>(category);
+
+            return StatusCode(200, categoryGet);
         }
 
         [HttpPost("")]
-        public IActionResult Create([FromForm]Category category)
+        public IActionResult Create([FromForm]CategoryPostDto categoryPostDto)
         {
-            Category existcategory = context.Categories.FirstOrDefault(x => x.Name.ToLower() == category.Name.ToLower());
-            if (existcategory != null) return Content($"{category.Name.ToUpper()} already exist!!");
+            Category existcategory = context.Categories.FirstOrDefault(x => x.Name.ToLower() == categoryPostDto.Name.ToLower());
+            if (existcategory != null) return Content($"{categoryPostDto.Name.ToUpper()} already exist!!");
 
-            if (category.Photo == null) return NotFound();
+            if (categoryPostDto.Photo == null) return NotFound();
 
-            if (!category.Photo.IsImage())
+            if (!categoryPostDto.Photo.IsImage())
             {
                 return NotFound();
             }
 
             string folder = @"Image\";
-            string filename = category.Photo.SaveAsync(webHost.WebRootPath, folder).Result;
+            string filename = categoryPostDto.Photo.SaveAsync(webHost.WebRootPath, folder).Result;
 
+            Category category = new Category()
+            {
+                Name = categoryPostDto.Name,
+                Image = filename
+            };
 
-
-            category.Image = filename;
             context.Categories.Add(category);
             context.SaveChanges();
 
             return StatusCode(StatusCodes.Status200OK, category);
         }
 
-        [HttpPut("")]
-        public IActionResult Update(Category category)
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, CategoryPostDto categoryPostDto)
         {
-            Category exisyCategory = context.Categories.FirstOrDefault(x => x.Id == category.Id);
+            Category exisyCategory = context.Categories.FirstOrDefault(x => x.Id == id);
             if (exisyCategory == null) return NotFound();
-            exisyCategory.Name = category.Name;
+            exisyCategory.Name = categoryPostDto.Name;
             context.SaveChanges();
             return Ok();
         }

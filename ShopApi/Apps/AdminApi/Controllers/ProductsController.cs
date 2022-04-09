@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ShopApi.Apps.AdminApi.DTOs.ProductDtos;
 using ShopApi.Data.DAL;
 using ShopApi.Data.Entities;
@@ -15,18 +17,47 @@ namespace ShopApi.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly ShopDbContext context;
+        private readonly IMapper mapper;
 
-        public ProductsController(ShopDbContext db)
+        public ProductsController(ShopDbContext db, IMapper mapper)
         {
             context = db;
+            this.mapper = mapper;
         }
 
         [Route("get/{id}")]
         public IActionResult Get(int id)
         {
-            Product product = context.Products.FirstOrDefault(x => x.Id == id && !x.IsDeleted);
+            Product product = context.Products.Include(x=>x.Category).ThenInclude(x=>x.Products).FirstOrDefault(x => x.Id == id && !x.IsDeleted);
             if (product == null) return NotFound();
 
+            //ProductGetDto productGet = new ProductGetDto()
+            //{
+            //    Id = product.Id,
+            //    Name = product.Name,
+            //    SalePrice = product.SalePrice,
+            //    CostPrice = product.CostPrice,
+            //    CreatedAt = product.CreatedAt,
+            //    ModifiedAt = product.ModifiedAt,
+            //    DisplayStatus = product.DisplayStatus,
+            //    Category = new CategoryInProductGetDto 
+            //    {
+            //        Id = product.Category.Id,
+            //        Name = product.Category.Name,
+            //        ProductCounts = product.Category.Products.Count 
+            //    }
+
+
+            //};
+
+          //  ProductGetDto productGet = MapToProductGetDto(product);
+            ProductGetDto productGet = mapper.Map<ProductGetDto>(product);
+
+            return StatusCode(200, productGet);
+        }
+
+        private ProductGetDto MapToProductGetDto(Product product)
+        {
             ProductGetDto productGet = new ProductGetDto()
             {
                 Id = product.Id,
@@ -36,12 +67,20 @@ namespace ShopApi.Controllers
                 CreatedAt = product.CreatedAt,
                 ModifiedAt = product.ModifiedAt,
                 DisplayStatus = product.DisplayStatus,
-                CategoryId = product.CategoryId
+                Category = new CategoryInProductGetDto
+                {
+                    Id = product.Category.Id,
+                    Name = product.Category.Name,
+                    ProductCounts = product.Category.Products.Count
+                }
+
 
             };
-
-            return StatusCode(200, productGet);
+            return productGet;
         }
+
+
+
 
         [Route("{page}")]
         public IActionResult GetAll(int page=1, string search=null)
@@ -60,9 +99,16 @@ namespace ShopApi.Controllers
                     Name = x.Name,
                     SalePrice = x.SalePrice,
                     CostPrice = x.CostPrice,
-                    DisplayStatus = x.DisplayStatus
+                    DisplayStatus = x.DisplayStatus,
+                    Category = new CategoryInProductListItemDto()
+                    {
+                        Id = x.Category.Id,
+                        Name = x.Category.Name
+                    }
+                    
                 }).ToList(),
                 TotalCount = query.Count()
+               
             };
 
 
@@ -73,6 +119,7 @@ namespace ShopApi.Controllers
         [HttpPost]
         public IActionResult Create(ProductPostDto productDto)
         {
+            if (!context.Categories.Any(x => x.Id == productDto.CategoryId)) return NotFound();
             Product product = new Product()
             {
                 Name = productDto.Name,
