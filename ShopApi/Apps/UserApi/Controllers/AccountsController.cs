@@ -85,9 +85,33 @@ namespace ShopApi.Apps.UserApi.Controllers
 
             //JWT Token
 
-           
+            List<Claim> claims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("FullName", user.FullName)
+            };
 
-            return Ok(new { token = "" });
+            var roles = await userManager.GetRolesAsync(user);
+            claims.AddRange(roles.Select(x => new Claim(ClaimTypes.Role, x)).ToList());
+
+            string keyStr = "905d55f5-e0c9-4eb5-9ceb-311bba9bec5e";
+            SymmetricSecurityKey key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(keyStr));
+            SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            JwtSecurityToken token = new JwtSecurityToken(
+                claims: claims,
+                signingCredentials: creds,
+                expires: DateTime.Now.AddDays(5),
+                issuer: "https://localhost:44331/",
+                audience: "https://localhost:44331/"
+                );
+
+            string tokenStr = new JwtSecurityTokenHandler().WriteToken(token);
+
+
+
+            return Ok(new { token = tokenStr });
         }
 
         [Authorize]
