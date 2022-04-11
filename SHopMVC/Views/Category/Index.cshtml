@@ -1,0 +1,36 @@
+﻿@model CategoryListDto
+@{
+    ViewData["Title"] = "Index";
+    int count = 0;
+}
+
+<h1>Categories</h1>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Id</th>
+                        <th scope="col">Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Categories)
+                    {
+                        <tr>
+                            <th scope="row">@count</th>
+                            <td>@item.Image</td>
+                            <td>@item.Name</td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+
