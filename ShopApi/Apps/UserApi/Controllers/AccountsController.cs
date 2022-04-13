@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -109,6 +110,16 @@ namespace ShopApi.Apps.UserApi.Controllers
 
             string tokenStr = new JwtSecurityTokenHandler().WriteToken(token);
 
+            
+
+            if (HttpContext.Request.Cookies["jwttoken"] == null)
+            {
+               HttpContext.Response.Cookies.Append("jwttoken", tokenStr);
+            }
+            else
+            {
+       
+            }
 
 
             return Ok(new { token = tokenStr });
