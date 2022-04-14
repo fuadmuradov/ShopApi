@@ -37,7 +37,7 @@ namespace SHopMVC.Controllers
                 response.EnsureSuccessStatusCode();
 
                 var responseStr = await response.Content.ReadAsStringAsync();
-                listDto = JsonConvert.DeserializeObject<CategoryListDto>(responseStr);
+                listDto = JsonConvert.DeserializeObject<CategoryListDto>(responseStr);  
             }
 
 

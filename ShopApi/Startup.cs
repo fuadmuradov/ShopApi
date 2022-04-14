@@ -16,6 +16,7 @@ using ShopApi.Apps.AdminApi.DTOs.ProductDtos;
 using ShopApi.Apps.AdminApi.Profiles;
 using ShopApi.Data.DAL;
 using ShopApi.Data.Entities;
+using ShopApi.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,7 +71,9 @@ namespace ShopApi
                 };
 
             });
-          
+
+            services.AddScoped<CategoryRepository>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
