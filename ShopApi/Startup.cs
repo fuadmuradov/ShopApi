@@ -72,7 +72,7 @@ namespace ShopApi
 
             });
 
-            services.AddScoped<CategoryRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
 
         }
 

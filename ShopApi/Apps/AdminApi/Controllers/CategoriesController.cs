@@ -8,6 +8,7 @@ using ShopApi.Apps.AdminApi.DTOs.CateforyDtos;
 using ShopApi.Data.DAL;
 using ShopApi.Data.Entities;
 using ShopApi.Extensions;
+using ShopApi.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,23 +18,24 @@ namespace ShopApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class CategoriesController : ControllerBase
     {
         private readonly ShopDbContext context;
         private readonly IWebHostEnvironment webHost;
         private readonly IMapper mapper;
+        private readonly ICategoryRepository categoryRepository;
 
-        public CategoriesController(ShopDbContext context, IWebHostEnvironment webHost, IMapper mapper)
+        public CategoriesController(ShopDbContext context, IWebHostEnvironment webHost, IMapper mapper, ICategoryRepository categoryRepository)
         {
             this.context = context;
             this.webHost = webHost;
             this.mapper = mapper;
+            this.categoryRepository = categoryRepository;
         }
-
+        [HttpGet("")]
         public IActionResult GetAll()
         {
-            var query = context.Categories.Where(x => !x.IsDeleted);
+            var query = categoryRepository.GetAll(x => !x.IsDeleted);
             CategoryGetListDto categoryGetListDto = new CategoryGetListDto()
             {
                 Categories = query.Select(x => new CategoryListItemDto()
@@ -50,25 +52,20 @@ namespace ShopApi.Controllers
 
         [Route("get/{id}")]
         [HttpGet]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            Category category = context.Categories.Include(x=>x.Products).FirstOrDefault(x => x.Id == id);
+            Category category = await categoryRepository.GetAsync(x => x.Id == id && !x.IsDeleted, "Products");
             if (category == null) return NotFound();
-            //CategoryGetDtos categoryGet = new CategoryGetDtos()
-            //{
-            //    Name = category.Name,
-            //    Image = category.Image,
-            //};
-
+      
             CategoryGetDtos categoryGet = mapper.Map<CategoryGetDtos>(category);
 
             return StatusCode(200, categoryGet);
         }
 
         [HttpPost("")]
-        public IActionResult Create([FromForm]CategoryPostDto categoryPostDto)
+        public async Task<IActionResult> Create([FromForm]CategoryPostDto categoryPostDto)
         {
-            Category existcategory = context.Categories.FirstOrDefault(x => x.Name.ToLower() == categoryPostDto.Name.ToLower());
+            Category existcategory = await categoryRepository.GetAsync(x => x.Name.ToLower() == categoryPostDto.Name.ToLower());
             if (existcategory != null) return Content($"{categoryPostDto.Name.ToUpper()} already exist!!");
 
             if (categoryPostDto.Photo == null) return NotFound();
@@ -87,30 +84,31 @@ namespace ShopApi.Controllers
                 Image = filename
             };
 
-            context.Categories.Add(category);
-            context.SaveChanges();
+
+            await categoryRepository.AddAsync(category);
+            await categoryRepository.CommitAsync();
 
             return StatusCode(StatusCodes.Status200OK, category);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, CategoryPostDto categoryPostDto)
+        public async Task<IActionResult> Update(int id, CategoryPostDto categoryPostDto)
         {
-            Category exisyCategory = context.Categories.FirstOrDefault(x => x.Id == id);
+            Category exisyCategory = await categoryRepository.GetAsync(x => x.Id == id && !x.IsDeleted);
             if (exisyCategory == null) return NotFound();
             exisyCategory.Name = categoryPostDto.Name;
-            context.SaveChanges();
+            await categoryRepository.CommitAsync();
             return Ok();
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Category category = context.Categories.FirstOrDefault(x => x.Id == id);
+            Category category = await categoryRepository.GetAsync(x => x.Id == id && !x.IsDeleted);
             if (category == null) return NotFound();
 
-            context.Categories.Remove(category);
-            context.SaveChanges();
+            categoryRepository.Remove(category);
+            await categoryRepository.CommitAsync();
             return Ok();
 
         }
