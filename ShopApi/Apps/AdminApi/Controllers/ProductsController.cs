@@ -31,24 +31,7 @@ namespace ShopApi.Controllers
             Product product = context.Products.Include(x=>x.Category).ThenInclude(x=>x.Products).FirstOrDefault(x => x.Id == id && !x.IsDeleted);
             if (product == null) return NotFound();
 
-            //ProductGetDto productGet = new ProductGetDto()
-            //{
-            //    Id = product.Id,
-            //    Name = product.Name,
-            //    SalePrice = product.SalePrice,
-            //    CostPrice = product.CostPrice,
-            //    CreatedAt = product.CreatedAt,
-            //    ModifiedAt = product.ModifiedAt,
-            //    DisplayStatus = product.DisplayStatus,
-            //    Category = new CategoryInProductGetDto 
-            //    {
-            //        Id = product.Category.Id,
-            //        Name = product.Category.Name,
-            //        ProductCounts = product.Category.Products.Count 
-            //    }
-
-
-            //};
+           
 
           //  ProductGetDto productGet = MapToProductGetDto(product);
             ProductGetDto productGet = mapper.Map<ProductGetDto>(product);

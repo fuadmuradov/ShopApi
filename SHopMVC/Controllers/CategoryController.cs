@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SHopMVC.DTOs;
 using System;
@@ -20,6 +21,16 @@ namespace SHopMVC.Controllers
             CategoryListDto listDto;
 
             string Token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibXVyYWRtdXJhZG92IiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJmZDEyZmQ5Mi0wYWYzLTQwNWMtYjhhMS0yNWVkNzg2Nzg4ZjkiLCJGdWxsTmFtZSI6Ik11cmFkIE11cmFkb3YiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJNZW1iZXIiLCJleHAiOjE2NTA0MDQ4NjIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjQ0MzMxLyIsImF1ZCI6Imh0dHBzOi8vbG9jYWxob3N0OjQ0MzMxLyJ9.27XUF0ZJN7EE5x8mlL4Ah6kbS3a6OS6RyYjHmGFaKnI";
+
+            CookieOptions options = new CookieOptions();
+            options.Expires = DateTime.Now.AddDays(3);
+            Response.Cookies.Append("usertoken", Token, options);
+           if(HttpContext.Request.Cookies["usertoken"] != null)
+            {
+                return Content(HttpContext.Request.Cookies["usertoken"].ToString());
+            }
+
+
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:44331/api/categories"))
             {

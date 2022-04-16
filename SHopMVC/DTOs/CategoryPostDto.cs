@@ -11,7 +11,5 @@ namespace SHopMVC.DTOs
     {
         [Required]
         public string Name { get; set; }
-        [Required]
-        public IFormFile Photo { get; set; }
     }
 }

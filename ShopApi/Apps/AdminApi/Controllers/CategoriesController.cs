@@ -63,7 +63,7 @@ namespace ShopApi.Controllers
         }
 
         [HttpPost("")]
-        public async Task<IActionResult> Create([FromForm]CategoryPostDto categoryPostDto)
+        public async Task<IActionResult> Create([FromBody]CategoryPostDto categoryPostDto)
         {
             Category existcategory = await categoryRepository.GetAsync(x => x.Name.ToLower() == categoryPostDto.Name.ToLower());
             if (existcategory != null) return Content($"{categoryPostDto.Name.ToUpper()} already exist!!");

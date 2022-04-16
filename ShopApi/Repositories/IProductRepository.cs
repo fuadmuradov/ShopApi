@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace ShopApi.Repositories
 {
-    public interface ICategoryRepository:IRepository<Category>
+    public interface IProductRepository:IRepository<Product>
     {
-       
+
+
     }
 }
